@@ -7,14 +7,22 @@
   <title>Document</title>
 </head>
 <body>
+  <div class="jumbotron main-jumbotron">
+    <div class="container">
+      <h1 class="page-heading">RSS Reader</h1>
+    </div>
+  </div>
   <div class="jumbotron">
-    <div class="container ">
+    <div class="container">
       <div class="row no-gutters">
-        <div class="col-12 col-xs-12 col-sm-12 col-md-9 col-lg-10">
-          <input id="inputField" class="form-control" type="text" placeholder="Type something...">
+        <div class="col-12 col-xs-12 col-sm-12 col-md-9 col-lg-9">
+          <input id="inputField" class="form-control" type="text" placeholder="Enter RSS URL...">
         </div>
-        <div class="col-12 col-xs-12 col-sm-12 col-md-3 col-lg-2">
-          <button id="submitBtn" class="btn btn-success btn-block" type="submit">Submit</button>
+        <div class="col-12 col-xs-12 col-sm-12 col-md-3 col-lg-2 offset-lg-1">
+          <button id="submitBtn" class="btn btn-success btn-block" type="submit">
+            <span id="loadingSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            Read
+          </button>
         </div>
       </div>
     </div>

@@ -2,49 +2,48 @@ import 'bootstrap';
 import './assets/index.scss';
 import axios from 'axios';
 import WatchJS from 'melanke-watchjs';
-import present from './presenter';
+import validator from 'validator';
+import generateFeedObject from './utils';
+import { presentFeed, presentForm, presentSubmitBtn } from './presenters';
 
 const state = {
-  currState: [],
-}
+  currentState: [],
+  addedFeedLinks: [],
+  urlIsValid: null,
+  loadingResponse: false,
+};
+
 const submitBtn = document.querySelector('#submitBtn');
 const inputField = document.querySelector('#inputField');
-const CORS = 'https://cors-anywhere.herokuapp.com/';
+const CORSproxy = 'https://cors-anywhere.herokuapp.com';
 
-const generateFeedObject = (xmlDoc) => {
-  const feedTitle = xmlDoc.querySelector('title').textContent;
-  const feedDescr = xmlDoc.querySelector('description').textContent;
-  const feedChildren =
-  [...xmlDoc.querySelectorAll('item')]
-    .map(item => [...item.children]
-    .filter(child => child.nodeName === 'title' || child.nodeName === 'link'))
-    .map((child) => {
-      return {
-        title: child[0].textContent,
-        link: child[1].textContent,
-      }
-    });
-
-  return {
-    feedTitle,
-    feedDescr,
-    feedChildren,
-  }
-}
-
-submitBtn.addEventListener('click', (e) => {
-  const link = inputField.value;
+submitBtn.addEventListener('click', () => {
+  const inputValue = inputField.value;
   const parser = new DOMParser();
 
-  axios.get(CORS+link).then((response) => {
-    const data = response.data;
-    const xmlDoc = parser.parseFromString(data, 'application/xml');
+  if (inputValue.length === 0) return;
 
-    state.currState = [...state.currState, generateFeedObject(xmlDoc)]
-  })
-})
+  state.loadingResponse = true;
 
-WatchJS.watch(state, 'currState', () => {
-  console.log(state.currState)
-  present(state.currState)
+  axios.get(`${CORSproxy}/${inputValue}`).then((response) => {
+    const responseData = response.data;
+    const xmlDocument = parser.parseFromString(responseData, 'application/xml');
+    state.currentState = [...state.currentState, generateFeedObject(xmlDocument)];
+    state.addedFeedLinks = [...state.addedFeedLinks, inputValue];
+    state.loadingResponse = false;
+  }).catch(() => {
+    state.loadingResponse = false;
+    alert('Something went wrong :(');
+  });
 });
+
+
+inputField.addEventListener('input', (e) => {
+  const isValidURL = validator.isURL(e.target.value);
+  const isNotDuplicateURL = !state.addedFeedLinks.includes(e.target.value);
+  state.urlIsValid = isValidURL && isNotDuplicateURL;
+});
+
+WatchJS.watch(state, 'currentState', () => presentFeed(state.currentState));
+WatchJS.watch(state, 'urlIsValid', () => presentForm(state.urlIsValid));
+WatchJS.watch(state, 'loadingResponse', () => presentSubmitBtn(state.loadingResponse));

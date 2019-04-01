@@ -1,1 +1,10 @@
 @import "~bootstrap/scss/bootstrap";
+
+.jumbotron {
+  margin-bottom: 0;
+}
+
+.main-jumbotron {
+  padding-bottom: 0;
+  margin-bottom: -40px;
+}
