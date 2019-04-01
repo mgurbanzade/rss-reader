@@ -20,22 +20,22 @@ module.exports = {
       {
         test: /\.(scss)$/,
         use: [{
-          loader: 'style-loader', // inject CSS to page
+          loader: 'style-loader',
         }, {
-          loader: 'css-loader', // translates CSS into CommonJS modules
+          loader: 'css-loader',
         }, {
-          loader: 'postcss-loader', // Run post css actions
+          loader: 'postcss-loader',
           options: {
-            plugins: function () { // post css plugins, can be exported to postcss.config.js
+            plugins() {
               return [
                 require('precss'),
-                require('autoprefixer')
+                require('autoprefixer'),
               ];
-            }
-          }
+            },
+          },
         }, {
-          loader: 'sass-loader' // compiles Sass to CSS
-        }]
+          loader: 'sass-loader',
+        }],
       },
     ],
   },
