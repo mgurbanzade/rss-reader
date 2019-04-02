@@ -1,6 +1,7 @@
 import 'bootstrap';
 import './assets/index.scss';
 import axios from 'axios';
+import $ from 'jquery';
 import WatchJS from 'melanke-watchjs';
 import validator from 'validator';
 import generateFeedObject from './utils';
@@ -43,6 +44,12 @@ inputField.addEventListener('input', (e) => {
   const isNotDuplicateURL = !state.addedFeedLinks.includes(e.target.value);
   state.urlIsValid = isValidURL && isNotDuplicateURL;
 });
+
+$('#modalWindow').on('show.bs.modal', (event) => {
+  const descriptionBody = $(event.relatedTarget).data('whatever');
+  $('#modalWindow').find('.modal-body p').text(descriptionBody);
+});
+
 
 WatchJS.watch(state, 'currentState', () => presentFeed(state.currentState));
 WatchJS.watch(state, 'urlIsValid', () => presentForm(state.urlIsValid));

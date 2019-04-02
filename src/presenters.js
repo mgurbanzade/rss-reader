@@ -3,7 +3,15 @@ const inputField = document.querySelector('#inputField');
 const submitBtn = document.querySelector('#submitBtn');
 const loadingSpinner = document.querySelector('#loadingSpinner');
 
-const presentFeedChildItem = item => `<li class="list-group-item"><a href="${item.link}" target="_blank">${item.title}</a></li>`;
+const presentFeedChildItem = (item) => {
+  const description = item.description.length > 0 ? item.description : 'Description is missing';
+  return `<li class="list-group-item">
+    <a href="${item.link}" target="_blank" class="article-link">${item.title}</a>
+    <button type="button" class="btn btn-primary btn-block description" data-toggle="modal" data-target="#modalWindow" data-whatever="${description}">
+      Description
+    </button>
+  </li>`;
+};
 
 const presentFeed = (state) => {
   const feedMarkup = state.map((feedObj, index) => `<div class="card">
