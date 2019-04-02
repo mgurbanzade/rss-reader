@@ -6,8 +6,8 @@ const loadingSpinner = document.querySelector('#loadingSpinner');
 const presentFeedChildItem = (item) => {
   const description = item.description.length > 0 ? item.description : 'Description is missing';
   return `<li class="list-group-item">
-    <a href="${item.link}" target="_blank" class="article-link">${item.title}</a>
-    <button type="button" class="btn btn-primary btn-block description" data-toggle="modal" data-target="#modalWindow" data-whatever="${description}">
+    <a href="${item.link}" target="_blank" class="article-link block-text mb-2 d-block">${item.title}</a>
+    <button type="button" class="btn btn-primary offset-5 col-2" data-toggle="modal" data-target="#modalWindow" data-whatever="${description}">
       Description
     </button>
   </li>`;
