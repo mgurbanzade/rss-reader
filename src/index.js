@@ -2,40 +2,48 @@ import 'bootstrap';
 import './styles/index.scss';
 import axios from 'axios';
 import $ from 'jquery';
-import WatchJS from 'melanke-watchjs';
+import { watch, callWatchers } from 'melanke-watchjs';
 import validator from 'validator';
-import generateFeedObject from './utils';
-import { presentFeed, presentForm, presentSubmitBtn } from './presenters';
+import { generateFeedObject, parseRSSFeed } from './utils';
+import {
+  presentFeed, presentForm, presentSubmitBtn, presentError,
+} from './presenters';
 
-const run = () => {
-  const state = {
-    currentState: [],
-    addedFeedLinks: [],
-    urlIsValid: null,
-    loadingResponse: false,
-  };
+const defaultState = {
+  parsedFeedObjects: [],
+  addedFeedLinks: [],
+  urlIsValid: null,
+  requestState: {
+    isProcessing: false,
+    failed: false,
+  },
+};
 
+const run = (state = defaultState) => {
   const submitBtn = document.querySelector('#submitBtn');
   const inputField = document.querySelector('#inputField');
   const CORSproxy = 'https://cors-anywhere.herokuapp.com';
 
   submitBtn.addEventListener('click', () => {
     const inputValue = inputField.value;
-    const parser = new DOMParser();
-
     if (inputValue.length === 0) return;
 
-    state.loadingResponse = true;
+    state.requestState.isProcessing = true;
 
     axios.get(`${CORSproxy}/${inputValue}`).then((response) => {
       const responseData = response.data;
-      const xmlDocument = parser.parseFromString(responseData, 'application/xml');
-      state.currentState = [...state.currentState, generateFeedObject(xmlDocument)];
+      const xmlDocument = parseRSSFeed(responseData, 'application/xml');
+      state.parsedFeedObjects = [...state.parsedFeedObjects, generateFeedObject(xmlDocument)];
       state.addedFeedLinks = [...state.addedFeedLinks, inputValue];
-      state.loadingResponse = false;
+      state.requestState.isProcessing = false;
     }).catch(() => {
-      state.loadingResponse = false;
-      alert('Something went wrong :(');
+      state.requestState.isProcessing = false;
+
+      if (state.requestState.failed) {
+        callWatchers(state.requestState, 'failed');
+      } else {
+        state.requestState.failed = true;
+      }
     });
   });
 
@@ -52,9 +60,10 @@ const run = () => {
   });
 
 
-  WatchJS.watch(state, 'currentState', () => presentFeed(state.currentState));
-  WatchJS.watch(state, 'urlIsValid', () => presentForm(state.urlIsValid));
-  WatchJS.watch(state, 'loadingResponse', () => presentSubmitBtn(state.loadingResponse));
+  watch(state, 'parsedFeedObjects', () => presentFeed(state.parsedFeedObjects));
+  watch(state, 'urlIsValid', () => presentForm(state.urlIsValid));
+  watch(state.requestState, 'isProcessing', () => presentSubmitBtn(state.requestState.isProcessing));
+  watch(state.requestState, 'failed', () => presentError());
 };
 
 run();

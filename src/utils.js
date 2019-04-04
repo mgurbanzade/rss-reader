@@ -14,4 +14,9 @@ const generateFeedObject = (xmlDocument) => {
   return { feedTitle, feedDescr, feedChildren };
 };
 
-export default generateFeedObject;
+const parseRSSFeed = (xmlDocument) => {
+  const parser = new DOMParser();
+  return parser.parseFromString(xmlDocument, 'application/xml');
+};
+
+export { generateFeedObject, parseRSSFeed };

@@ -1,19 +1,19 @@
-const feed = document.querySelector('#feedAccordion');
-const inputField = document.querySelector('#inputField');
-const submitBtn = document.querySelector('#submitBtn');
-const loadingSpinner = document.querySelector('#loadingSpinner');
+const feedEl = document.querySelector('#feedAccordion');
+const inputFieldEl = document.querySelector('#inputField');
+const submitEl = document.querySelector('#submitBtn');
+const spinnerEl = document.querySelector('#loadingSpinner');
 
 const presentFeedChildItem = (item) => {
   const description = item.description.length > 0 ? item.description : 'Description is missing';
   return `<li class="list-group-item">
-    <a href="${item.link}" target="_blank" class="article-link block-text mb-2 d-block">${item.title}</a>
+    <a href="${item.link}" target="_blank" class="article-link block-text mb-3 d-block text-center">${item.title}</a>
     <button type="button" class="btn btn-primary offset-5 col-2" data-toggle="modal" data-target="#modalWindow" data-whatever="${description}">
       Description
     </button>
   </li>`;
 };
 
-const presentFeed = (state) => {
+const presentFeed = (state, feed = feedEl, inputField = inputFieldEl) => {
   const feedMarkup = state.map((feedObj, index) => `<div class="card">
       <div class="card-header" id="feed-item-${index}">
         <h5 class="mb-0">
@@ -38,7 +38,7 @@ const presentFeed = (state) => {
   inputField.classList.remove('is-valid');
 };
 
-const presentForm = (isValidURL) => {
+const presentForm = (isValidURL, inputField = inputFieldEl, submitBtn = submitEl) => {
   inputField.removeAttribute('class');
   inputField.classList.add('form-control');
 
@@ -51,13 +51,18 @@ const presentForm = (isValidURL) => {
   }
 };
 
-const presentSubmitBtn = (loadingResponse) => {
-  if (loadingResponse) {
-    loadingSpinner.classList.remove('d-none');
+const presentSubmitBtn = (requestIsProcessing, submitBtn = submitEl, spinner = spinnerEl) => {
+  if (requestIsProcessing) {
+    spinner.classList.remove('d-none');
     submitBtn.disabled = true;
   } else {
-    loadingSpinner.classList.add('d-none');
+    spinner.classList.add('d-none');
     submitBtn.disabled = false;
   }
 };
-export { presentFeed, presentForm, presentSubmitBtn };
+
+const presentError = () => alert('Something went wrong :(');
+
+export {
+  presentFeed, presentForm, presentSubmitBtn, presentError,
+};
