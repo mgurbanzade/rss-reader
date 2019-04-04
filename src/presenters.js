@@ -1,8 +1,3 @@
-const feedEl = document.querySelector('#feedAccordion');
-const inputFieldEl = document.querySelector('#inputField');
-const submitEl = document.querySelector('#submitBtn');
-const spinnerEl = document.querySelector('#loadingSpinner');
-
 const presentFeedChildItem = (item) => {
   const description = item.description.length > 0 ? item.description : 'Description is missing';
   return `<li class="list-group-item">
@@ -13,7 +8,7 @@ const presentFeedChildItem = (item) => {
   </li>`;
 };
 
-const presentFeed = (state, feed = feedEl, inputField = inputFieldEl) => {
+const presentFeed = (state, feedEl, inputField) => {
   const feedMarkup = state.map((feedObj, index) => `<div class="card">
       <div class="card-header" id="feed-item-${index}">
         <h5 class="mb-0">
@@ -33,36 +28,60 @@ const presentFeed = (state, feed = feedEl, inputField = inputFieldEl) => {
       </div>
     </div>`);
 
-  feed.innerHTML = feedMarkup.join('');
+  feedEl.innerHTML = feedMarkup.join('');
   inputField.value = '';
   inputField.classList.remove('is-valid');
 };
 
-const presentForm = (isValidURL, inputField = inputFieldEl, submitBtn = submitEl) => {
+const presentForm = (urlState, inputField, submitBtn) => {
   inputField.removeAttribute('class');
   inputField.classList.add('form-control');
 
-  if (isValidURL) {
-    inputField.classList.add('is-valid');
-    submitBtn.disabled = false;
-  } else {
-    inputField.classList.add(isValidURL ? 'is-valid' : 'is-invalid');
-    submitBtn.disabled = true;
-  }
+  const statePresentersDispatcher = {
+    valid: () => {
+      inputField.classList.add('is-valid');
+      submitBtn.disabled = false;
+    },
+    invalid: () => {
+      inputField.classList.add('is-invalid');
+      submitBtn.disabled = true;
+    },
+  };
+
+  statePresentersDispatcher[urlState]();
 };
 
-const presentSubmitBtn = (requestIsProcessing, submitBtn = submitEl, spinner = spinnerEl) => {
-  if (requestIsProcessing) {
-    spinner.classList.remove('d-none');
-    submitBtn.disabled = true;
-  } else {
-    spinner.classList.add('d-none');
-    submitBtn.disabled = false;
-  }
-};
+const presentRequestState = (requestState, submitBtn, spinner) => {
+  const statePresentersDispatcher = {
+    isProcessing: () => {
+      spinner.classList.remove('d-none');
+      submitBtn.disabled = true;
+    },
+    failed: () => {
+      spinner.classList.add('d-none');
+      submitBtn.disabled = false;
+      document.querySelector('#alertBox').innerHTML = `<div class="alert alert-danger mb-0" role="alert">
+          Something went wrong :( Please, try again later.
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>`;
+    },
+    succeed: () => {
+      spinner.classList.add('d-none');
+      submitBtn.disabled = false;
+      document.querySelector('#alertBox').innerHTML = `<div class="alert alert-success mb-0" role="alert">
+          Yay! A new feed has been added!
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>`;
+    },
+  };
 
-const presentError = () => alert('Something went wrong :(');
+  statePresentersDispatcher[requestState]();
+};
 
 export {
-  presentFeed, presentForm, presentSubmitBtn, presentError,
+  presentFeed, presentForm, presentRequestState,
 };
