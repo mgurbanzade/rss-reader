@@ -1,13 +1,14 @@
-import 'bootstrap';
-import './styles/index.scss';
-import axios from 'axios';
 import $ from 'jquery';
-import { watch, callWatchers } from 'melanke-watchjs';
+import axios from 'axios';
 import validator from 'validator';
+import { watch, callWatchers } from 'melanke-watchjs';
 import { generateFeedObject, parseRSSFeed } from './utils';
 import {
   presentFeed, presentForm, presentSubmitBtn, presentError,
 } from './presenters';
+import 'bootstrap';
+import './styles/index.scss';
+
 
 const defaultState = {
   parsedFeedObjects: [],
@@ -26,14 +27,16 @@ const run = (state = defaultState) => {
 
   submitBtn.addEventListener('click', () => {
     const inputValue = inputField.value;
+    const requestLink = `${CORSproxy}/${inputValue}`;
     if (inputValue.length === 0) return;
 
     state.requestState.isProcessing = true;
 
-    axios.get(`${CORSproxy}/${inputValue}`).then((response) => {
-      const responseData = response.data;
-      const xmlDocument = parseRSSFeed(responseData, 'application/xml');
-      state.parsedFeedObjects = [...state.parsedFeedObjects, generateFeedObject(xmlDocument)];
+    axios.get(requestLink).then((response) => {
+      const xmlDocument = parseRSSFeed(response.data, 'application/xml');
+      state.parsedFeedObjects = [
+        ...state.parsedFeedObjects, generateFeedObject(xmlDocument),
+      ];
       state.addedFeedLinks = [...state.addedFeedLinks, inputValue];
       state.requestState.isProcessing = false;
     }).catch(() => {
@@ -46,7 +49,6 @@ const run = (state = defaultState) => {
       }
     });
   });
-
 
   inputField.addEventListener('input', (e) => {
     const isValidURL = validator.isURL(e.target.value);
