@@ -19,7 +19,7 @@ const presentFeed = (state, feedEl, inputField) => {
         </h5>
       </div>
 
-      <div id="collapse-${index}" class="collapse" aria-labelledby="feed-item-${index}" data-parent="#feedAccordion">
+      <div id="collapse-${index}" class="collapse show" aria-labelledby="feed-item-${index}" data-parent="#feedAccordion">
         <div class="card-body">
           <ul class="list-group">
             ${feedObj.feedChildren.map(child => presentFeedChildItem(child)).join('')}

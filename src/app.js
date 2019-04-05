@@ -50,6 +50,28 @@ export default () => {
     $('#modalWindow').find('.modal-body p').text(descriptionBody);
   });
 
+  setInterval(() => {
+    state.addedFeedLinks.forEach((link) => {
+      axios.get(`${CORSproxy}/${link}`).then((response) => {
+        const xmlDocument = parseRSSFeed(response.data);
+        const newfeedObject = generateFeedObject(xmlDocument);
+        const oldFeedObject = state.parsedFeedObjects
+          .filter(obj => obj.title === newfeedObject.title)[0];
+
+        const newItems = newfeedObject.feedChildren.filter((child) => {
+          const latestItem = oldFeedObject.feedChildren[0];
+          return Date.parse(child.pubDate) > Date.parse(latestItem.pubDate);
+        });
+
+        if (newItems.length === 0) return;
+
+        const indexOfOldFeedObject = state.parsedFeedObjects.indexOf(oldFeedObject);
+        const oldItems = state.parsedFeedObjects[indexOfOldFeedObject].feedChildren;
+        state.parsedFeedObjects[indexOfOldFeedObject].feedChildren = newItems.concat(oldItems);
+      });
+    });
+  }, 5000);
+
   watch(state, 'parsedFeedObjects', () => presentFeed(state.parsedFeedObjects, feedEl, inputField));
   watch(state, 'urlState', () => presentForm(state.urlState, inputField, submitBtn));
   watch(state, 'requestState', () => presentRequestState(state.requestState, submitBtn, spinnerEl));
