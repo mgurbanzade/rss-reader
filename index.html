@@ -12,19 +12,28 @@
     <div class="container">
       <h1 class="page-heading mb-4">RSS Reader</h1>
       <div class="row no-gutters">
-        <div class="col-12 col-xs-12 col-sm-12 col-md-9 col-lg-9">
-          <input id="inputField" class="form-control" type="text" placeholder="Enter RSS URL...">
-        </div>
-        <div class="col-12 col-xs-12 col-sm-12 col-md-3 col-lg-2 offset-lg-1">
-          <button id="submitBtn" class="btn btn-success btn-block" type="submit">
-            <span id="loadingSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-            Read
-          </button>
+        <div class="input-group mb-3">
+          <input id="inputField" class="form-control" type="text" placeholder="Enter RSS feed URL..." aria-describedby="submitBtn">
+          <div class="input-group-append col-2 pl-0 pr-0">
+            <button id="submitBtn" class="btn btn-success btn-block" type="submit">
+              <span id="loadingSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              Read
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
-  <div id="feedAccordion" class="accordion"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col-3">
+        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical"></div>
+      </div>
+      <div class="col-9">
+        <div class="tab-content" id="v-pills-tabContent"></div>
+      </div>
+    </div>
+  </div>
   <div id="modalWindow" class="modal fade" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
       <div class="modal-content">

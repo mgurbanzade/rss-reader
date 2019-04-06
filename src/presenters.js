@@ -1,34 +1,45 @@
-const presentFeedChildItem = (item) => {
+import $ from 'jquery';
+
+const generateMarkupForNewsItem = (item) => {
   const description = item.description.length > 0 ? item.description : 'Description is missing';
   return `<li class="list-group-item">
-    <a href="${item.link}" target="_blank" class="article-link block-text mb-3 d-block text-center">${item.title}</a>
-    <button type="button" class="btn btn-primary offset-5 col-2" data-toggle="modal" data-target="#modalWindow" data-whatever="${description}">
-      Description
-    </button>
+    <button type="button" class="btn btn-light ml-3 float-right" data-toggle="modal" data-target="#modalWindow">Description</button>
+    <a href="${item.link}" target="_blank" class="article-link block-text mb-3 text-decoration-none">${item.title}</a>
+    <div class="item-description d-none">${description}</div>
   </li>`;
 };
 
-const presentFeed = (state, feedEl, inputField) => {
-  const feedMarkup = state.map((feedObj, index) => `<div class="card">
-      <div class="card-header" id="feed-item-${index}">
-        <h5 class="mb-0">
-          <button class="btn btn-link collapsed text-left" type="button" data-toggle="collapse" data-target="#collapse-${index}" aria-expanded="true" aria-controls="collapse-${index}">
-            ${feedObj.feedTitle}
-          </button>
-          <small class="text-muted">${feedObj.feedDescr}</small>
-        </h5>
-      </div>
+const presentNews = (items, wrapper) => {
+  const channelIds = [...new Set(items.map(item => item.channelId))];
+  const wrapperMarkup = channelIds.map((channelId) => {
+    const selectedItems = items.filter(item => item.channelId === channelId);
+    const itemsMarkup = selectedItems.map(generateMarkupForNewsItem);
+    return `<div class="tab-pane fade show active" id="v-pills-${channelId}" role="tabpanel" aria-labelledby="v-pills-${channelId}-tab">
+      <ul class="list-group">${itemsMarkup.join('')}</ul>
+    </div>`;
+  });
 
-      <div id="collapse-${index}" class="collapse show" aria-labelledby="feed-item-${index}" data-parent="#feedAccordion">
-        <div class="card-body">
-          <ul class="list-group">
-            ${feedObj.feedChildren.map(child => presentFeedChildItem(child)).join('')}
-          </ul>
-        </div>
-      </div>
-    </div>`);
+  wrapper.innerHTML = wrapperMarkup.join('');
+  const activeTabs = document.querySelectorAll('.tab-pane.show.active');
 
-  feedEl.innerHTML = feedMarkup.join('');
+  activeTabs.forEach((tab, index) => {
+    if (index === activeTabs.length - 1) return;
+    tab.classList.remove('show');
+    tab.classList.remove('active');
+  });
+};
+
+const presentLatestNews = (newItems) => {
+  newItems.forEach((item) => {
+    $(`#v-pills-${item.channelId} ul`).prepend(generateMarkupForNewsItem(item));
+  });
+};
+
+const presentChannels = (channels, wrapper, inputField) => {
+  const channelsMarkup = channels.map(({ id, domain }) => `<a class="nav-link bg-light text-dark mb-1" id="v-pills-${id}-tab" data-toggle="pill" href="#v-pills-${id}" role="tab"
+      aria-controls="v-pills-${id}" aria-selected="false">${domain}</a>`);
+
+  wrapper.innerHTML = channelsMarkup.join('');
   inputField.value = '';
   inputField.classList.remove('is-valid');
 };
@@ -41,10 +52,12 @@ const presentForm = (urlState, inputField, submitBtn) => {
     valid: () => {
       inputField.classList.add('is-valid');
       submitBtn.disabled = false;
+      submitBtn.classList.remove('btn-danger');
     },
     invalid: () => {
       inputField.classList.add('is-invalid');
       submitBtn.disabled = true;
+      submitBtn.classList.add('btn-danger');
     },
   };
 
@@ -82,6 +95,16 @@ const presentRequestState = (requestState, submitBtn, spinner) => {
   statePresentersDispatcher[requestState]();
 };
 
+const presentModalState = ({ title, description }) => {
+  document.querySelector('.modal-title').textContent = title;
+  document.querySelector('.modal-body p').innerHTML = description;
+};
+
 export {
-  presentFeed, presentForm, presentRequestState,
+  presentChannels,
+  presentNews,
+  presentLatestNews,
+  presentForm,
+  presentRequestState,
+  presentModalState,
 };

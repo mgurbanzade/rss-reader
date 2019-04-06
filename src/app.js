@@ -1,25 +1,43 @@
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import $ from 'jquery';
 import axios from 'axios';
 import validator from 'validator';
 import { watch } from 'melanke-watchjs';
-import { generateFeedObject, parseRSSFeed } from './utils';
-import { presentFeed, presentForm, presentRequestState } from './presenters';
-import 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import {
+  generateChannelObject, generateNewsObject, parseRSSFeed, getHotNewsItems,
+} from './utils';
+import {
+  presentChannels,
+  presentNews,
+  presentLatestNews,
+  presentForm,
+  presentRequestState,
+  presentModalState,
+} from './presenters';
 
 export default () => {
   const state = {
-    parsedFeedObjects: [],
+    parsedChannels: [],
+    parsedNews: [],
+    latestParsedNews: [],
     addedFeedLinks: [],
     urlState: null,
     requestState: null,
+    modalState: {
+      title: null,
+      description: null,
+    },
   };
 
-  const feedEl = document.querySelector('#feedAccordion');
+  const tabsContainer = document.querySelector('#v-pills-tab');
+  const tabItemsContainer = document.querySelector('#v-pills-tabContent');
   const spinnerEl = document.querySelector('#loadingSpinner');
   const submitBtn = document.querySelector('#submitBtn');
   const inputField = document.querySelector('#inputField');
+  const modalWindow = $(document).find('#modalWindow');
   const CORSproxy = 'https://cors-anywhere.herokuapp.com';
+  const defaultUpdateTimeMs = 5000;
 
   submitBtn.addEventListener('click', () => {
     const inputValue = inputField.value;
@@ -29,9 +47,10 @@ export default () => {
     state.requestState = 'isProcessing';
     axios.get(requestLink).then((response) => {
       const xmlDocument = parseRSSFeed(response.data);
-      state.parsedFeedObjects = [
-        ...state.parsedFeedObjects, generateFeedObject(xmlDocument),
+      state.parsedChannels = [
+        ...state.parsedChannels, generateChannelObject(xmlDocument),
       ];
+      state.parsedNews = state.parsedNews.concat(generateNewsObject(xmlDocument));
       state.addedFeedLinks = [...state.addedFeedLinks, inputValue];
       state.requestState = 'succeed';
     }).catch(() => {
@@ -45,34 +64,38 @@ export default () => {
     state.urlState = isValidURL && isNotDuplicateURL ? 'valid' : 'invalid';
   });
 
-  $('#modalWindow').on('show.bs.modal', (event) => {
-    const descriptionBody = $(event.relatedTarget).data('whatever');
-    $('#modalWindow').find('.modal-body p').text(descriptionBody);
+  modalWindow.on('show.bs.modal', (event) => {
+    const targetTitle = $(event.relatedTarget).siblings('a').text();
+    const targetDescr = $(event.relatedTarget).siblings('.item-description').html();
+    state.modalState.title = targetTitle;
+    state.modalState.description = targetDescr;
   });
 
-  setInterval(() => {
-    state.addedFeedLinks.forEach((link) => {
-      axios.get(`${CORSproxy}/${link}`).then((response) => {
-        const xmlDocument = parseRSSFeed(response.data);
-        const newfeedObject = generateFeedObject(xmlDocument);
-        const oldFeedObject = state.parsedFeedObjects
-          .filter(obj => obj.title === newfeedObject.title)[0];
+  const lookForUpdates = (interval = defaultUpdateTimeMs) => {
+    setTimeout(() => {
+      const promises = state.addedFeedLinks.map(link => axios.get(`${CORSproxy}/${link}`));
 
-        const newItems = newfeedObject.feedChildren.filter((child) => {
-          const latestItem = oldFeedObject.feedChildren[0];
-          return Date.parse(child.pubDate) > Date.parse(latestItem.pubDate);
-        });
+      Promise.all(promises).then((responses) => {
+        const parsedResponses = getHotNewsItems(responses);
+        const latestItems = parsedResponses.reduce((acc, itemsArray) => {
+          const sortByDate = (a, b) => (a.pubDate > b.pubDate ? -1 : a.pubDate < b.pubDate ? 1 : 0);
+          const currLatestUpdateTime = state.parsedNews
+            .filter(parsedItem => parsedItem.channelId === itemsArray[0].channelId)
+            .sort(sortByDate)[0].pubDate;
+          return [...acc, itemsArray.filter(item => item.pubDate > currLatestUpdateTime)];
+        }, []);
 
-        if (newItems.length === 0) return;
+        state.latestParsedNews = latestItems.flat().reverse();
+      }).finally(lookForUpdates);
+    }, interval);
+  };
 
-        const indexOfOldFeedObject = state.parsedFeedObjects.indexOf(oldFeedObject);
-        const oldItems = state.parsedFeedObjects[indexOfOldFeedObject].feedChildren;
-        state.parsedFeedObjects[indexOfOldFeedObject].feedChildren = newItems.concat(oldItems);
-      });
-    });
-  }, 5000);
+  lookForUpdates();
 
-  watch(state, 'parsedFeedObjects', () => presentFeed(state.parsedFeedObjects, feedEl, inputField));
+  watch(state, 'parsedChannels', () => presentChannels(state.parsedChannels, tabsContainer, inputField));
+  watch(state, 'parsedNews', () => presentNews(state.parsedNews, tabItemsContainer));
+  watch(state, 'latestParsedNews', () => presentLatestNews(state.latestParsedNews));
   watch(state, 'urlState', () => presentForm(state.urlState, inputField, submitBtn));
   watch(state, 'requestState', () => presentRequestState(state.requestState, submitBtn, spinnerEl));
+  watch(state, 'modalState', () => presentModalState(state.modalState));
 };
