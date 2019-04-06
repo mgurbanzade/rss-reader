@@ -1,5 +1,3 @@
-import $ from 'jquery';
-
 const generateMarkupForNewsItem = (item) => {
   const description = item.description.length > 0 ? item.description : 'Description is missing';
   return `<li class="list-group-item">
@@ -20,19 +18,6 @@ const presentNews = (items, wrapper) => {
   });
 
   wrapper.innerHTML = wrapperMarkup.join('');
-  const activeTabs = document.querySelectorAll('.tab-pane.show.active');
-
-  activeTabs.forEach((tab, index) => {
-    if (index === activeTabs.length - 1) return;
-    tab.classList.remove('show');
-    tab.classList.remove('active');
-  });
-};
-
-const presentLatestNews = (newItems) => {
-  newItems.forEach((item) => {
-    $(`#v-pills-${item.channelId} ul`).prepend(generateMarkupForNewsItem(item));
-  });
 };
 
 const presentChannels = (channels, wrapper, inputField) => {
@@ -103,7 +88,6 @@ const presentModalState = ({ title, description }) => {
 export {
   presentChannels,
   presentNews,
-  presentLatestNews,
   presentForm,
   presentRequestState,
   presentModalState,

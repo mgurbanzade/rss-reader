@@ -11,7 +11,6 @@ import {
 import {
   presentChannels,
   presentNews,
-  presentLatestNews,
   presentForm,
   presentRequestState,
   presentModalState,
@@ -21,7 +20,6 @@ export default () => {
   const state = {
     parsedChannels: [],
     parsedNews: [],
-    latestParsedNews: [],
     addedFeedLinks: [],
     urlState: null,
     requestState: null,
@@ -86,7 +84,7 @@ export default () => {
           return [...acc, itemsArray.filter(item => item.pubDate > currLatestUpdateTime)];
         }, []);
 
-        state.latestParsedNews = latestItems.flat().reverse();
+        state.parsedNews = latestItems.flat().concat(state.parsedNews);
       }).finally(lookForUpdates);
     }, interval);
   };
@@ -95,7 +93,6 @@ export default () => {
 
   watch(state, 'parsedChannels', () => presentChannels(state.parsedChannels, tabsContainer, inputField));
   watch(state, 'parsedNews', () => presentNews(state.parsedNews, tabItemsContainer));
-  watch(state, 'latestParsedNews', () => presentLatestNews(state.latestParsedNews));
   watch(state, 'urlState', () => presentForm(state.urlState, inputField, submitBtn));
   watch(state, 'requestState', () => presentRequestState(state.requestState, submitBtn, spinnerEl));
   watch(state, 'modalState', () => presentModalState(state.modalState));
