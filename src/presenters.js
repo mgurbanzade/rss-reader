@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 const generateMarkupForNewsItem = (item) => {
   const description = item.description.length > 0 ? item.description : 'Description is missing';
   return `<li class="list-group-item">
@@ -8,10 +10,9 @@ const generateMarkupForNewsItem = (item) => {
 };
 
 const presentNews = (items, wrapper) => {
-  const channelIds = [...new Set(items.map(item => item.channelId))];
-  const wrapperMarkup = channelIds.map((channelId) => {
-    const selectedItems = items.filter(item => item.channelId === channelId);
-    const itemsMarkup = selectedItems.map(generateMarkupForNewsItem);
+  const groupedItems = _.groupBy(items, item => item.channelId);
+  const wrapperMarkup = Object.keys(groupedItems).map((channelId) => {
+    const itemsMarkup = groupedItems[channelId].map(generateMarkupForNewsItem);
     return `<div class="tab-pane fade show active" id="v-pills-${channelId}" role="tabpanel" aria-labelledby="v-pills-${channelId}-tab">
       <ul class="list-group">${itemsMarkup.join('')}</ul>
     </div>`;
