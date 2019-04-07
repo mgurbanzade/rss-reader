@@ -14,9 +14,9 @@ import {
 
 export default () => {
   const state = {
-    parsedChannels: [],
-    parsedNews: [],
-    addedFeedLinks: [],
+    channels: [],
+    news: [],
+    feedLinks: [],
     urlState: null,
     requestState: null,
     modalState: {
@@ -42,11 +42,11 @@ export default () => {
     state.requestState = 'isProcessing';
     axios.get(requestLink).then((response) => {
       const xmlDocument = parseRSSFeed(response.data);
-      state.parsedChannels = [
-        ...state.parsedChannels, generateChannelObject(xmlDocument),
+      state.channels = [
+        ...state.channels, generateChannelObject(xmlDocument),
       ];
-      state.parsedNews = state.parsedNews.concat(generateNewsObject(xmlDocument));
-      state.addedFeedLinks = [...state.addedFeedLinks, inputValue];
+      state.news = state.news.concat(generateNewsObject(xmlDocument));
+      state.feedLinks = [...state.feedLinks, inputValue];
       state.requestState = 'succeed';
     }).catch(() => {
       state.requestState = 'failed';
@@ -55,7 +55,7 @@ export default () => {
 
   inputField.addEventListener('input', (e) => {
     const isValidURL = validator.isURL(e.target.value);
-    const isNotDuplicateURL = !state.addedFeedLinks.includes(e.target.value);
+    const isNotDuplicateURL = !state.feedLinks.includes(e.target.value);
     state.urlState = isValidURL && isNotDuplicateURL ? 'valid' : 'invalid';
   });
 
@@ -68,27 +68,27 @@ export default () => {
 
   const lookForUpdates = (interval = defaultUpdateTimeMs) => {
     setTimeout(() => {
-      const promises = state.addedFeedLinks.map(link => axios.get(`${CORSproxy}/${link}`));
+      const promises = state.feedLinks.map(link => axios.get(`${CORSproxy}/${link}`));
 
       Promise.all(promises).then((responses) => {
         const parsedResponses = getHotNewsItems(responses);
         const latestItems = parsedResponses.reduce((acc, itemsArray) => {
           const sortByDate = (a, b) => (a.pubDate > b.pubDate ? -1 : a.pubDate < b.pubDate ? 1 : 0);
-          const currLatestUpdateTime = state.parsedNews
+          const currLatestUpdateTime = state.news
             .filter(parsedItem => parsedItem.channelId === itemsArray[0].channelId)
             .sort(sortByDate)[0].pubDate;
           return [...acc, itemsArray.filter(item => item.pubDate > currLatestUpdateTime)];
         }, []);
 
-        state.parsedNews = latestItems.flat().concat(state.parsedNews);
+        state.news = latestItems.flat().concat(state.news);
       }).finally(lookForUpdates);
     }, interval);
   };
 
   lookForUpdates();
 
-  watch(state, 'parsedChannels', () => renderChannels(state.parsedChannels, tabsContainer, inputField));
-  watch(state, 'parsedNews', () => renderNews(state.parsedNews, tabItemsContainer));
+  watch(state, 'channels', () => renderChannels(state.channels, tabsContainer, inputField));
+  watch(state, 'news', () => renderNews(state.news, tabItemsContainer));
   watch(state, 'urlState', () => renderForm(state.urlState, inputField, submitBtn));
   watch(state, 'requestState', () => renderRequestState(state.requestState, submitBtn, spinnerEl));
   watch(state, 'modalState', () => renderModalState(state.modalState));
