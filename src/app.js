@@ -12,6 +12,9 @@ import {
   renderChannels, renderNews, renderForm, renderRequestState, renderModalState,
 } from './renderers';
 
+const CORSproxy = 'https://cors-anywhere.herokuapp.com';
+const defaultUpdateTimeMs = 5000;
+
 export default () => {
   const state = {
     channels: [],
@@ -31,8 +34,6 @@ export default () => {
   const submitBtn = document.querySelector('#submitBtn');
   const inputField = document.querySelector('#inputField');
   const modalWindow = $(document).find('#modalWindow');
-  const CORSproxy = 'https://cors-anywhere.herokuapp.com';
-  const defaultUpdateTimeMs = 5000;
 
   submitBtn.addEventListener('click', () => {
     const inputValue = inputField.value;
@@ -41,11 +42,10 @@ export default () => {
 
     state.requestState = 'isProcessing';
     axios.get(requestLink).then((response) => {
-      const xmlDocument = parseRSSFeed(response.data);
       state.channels = [
-        ...state.channels, generateChannelObject(xmlDocument),
+        ...state.channels, generateChannelObject(response),
       ];
-      state.news = state.news.concat(generateNewsObject(xmlDocument));
+      state.news = state.news.concat(generateNewsObject(response));
       state.feedLinks = [...state.feedLinks, inputValue];
       state.requestState = 'succeed';
     }).catch(() => {

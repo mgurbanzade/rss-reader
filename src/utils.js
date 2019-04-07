@@ -4,7 +4,8 @@ const getChannelDomain = (channelURL) => {
 };
 const getChannelId = channelURL => getChannelDomain(channelURL).split('.').join('');
 
-const generateChannelObject = (xmlDocument) => {
+const generateChannelObject = ({data}) => {
+  const xmlDocument = parseRSSFeed(data);
   const link = xmlDocument.querySelector('link').textContent;
   return {
     id: getChannelId(link),
@@ -12,10 +13,11 @@ const generateChannelObject = (xmlDocument) => {
   };
 };
 
-const generateNewsObject = (parsedXmlDocument) => {
-  const channelLink = parsedXmlDocument.querySelector('link').textContent;
+const generateNewsObject = ({data}) => {
+  const xmlDocument = parseRSSFeed(data);
+  const channelLink = xmlDocument.querySelector('link').textContent;
   const childAttributes = ['title', 'link', 'description', 'pubDate'];
-  return [...parsedXmlDocument.querySelectorAll('item')]
+  return [...xmlDocument.querySelectorAll('item')]
     .map(item => [...item.children]
       .filter(child => childAttributes.includes(child.nodeName)))
     .map(child => ({
@@ -27,14 +29,13 @@ const generateNewsObject = (parsedXmlDocument) => {
     }));
 };
 
-const parseRSSFeed = (xmlDocument) => {
+const parseRSSFeed = (xmlData) => {
   const parser = new DOMParser();
-  return parser.parseFromString(xmlDocument, 'application/xml');
+  return parser.parseFromString(xmlData, 'application/xml');
 };
 
 const getHotNewsItems = responses => responses
-  .map(response => parseRSSFeed(response.data))
-  .map(parsedXmlDoc => generateNewsObject(parsedXmlDoc));
+  .map(response => generateNewsObject(response));
 
 export {
   generateChannelObject, generateNewsObject, parseRSSFeed, getHotNewsItems,
