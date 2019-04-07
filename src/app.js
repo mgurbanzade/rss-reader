@@ -9,12 +9,8 @@ import {
   generateChannelObject, generateNewsObject, parseRSSFeed, getHotNewsItems,
 } from './utils';
 import {
-  presentChannels,
-  presentNews,
-  presentForm,
-  presentRequestState,
-  presentModalState,
-} from './presenters';
+  renderChannels, renderNews, renderForm, renderRequestState, renderModalState,
+} from './renderers';
 
 export default () => {
   const state = {
@@ -91,9 +87,9 @@ export default () => {
 
   lookForUpdates();
 
-  watch(state, 'parsedChannels', () => presentChannels(state.parsedChannels, tabsContainer, inputField));
-  watch(state, 'parsedNews', () => presentNews(state.parsedNews, tabItemsContainer));
-  watch(state, 'urlState', () => presentForm(state.urlState, inputField, submitBtn));
-  watch(state, 'requestState', () => presentRequestState(state.requestState, submitBtn, spinnerEl));
-  watch(state, 'modalState', () => presentModalState(state.modalState));
+  watch(state, 'parsedChannels', () => renderChannels(state.parsedChannels, tabsContainer, inputField));
+  watch(state, 'parsedNews', () => renderNews(state.parsedNews, tabItemsContainer));
+  watch(state, 'urlState', () => renderForm(state.urlState, inputField, submitBtn));
+  watch(state, 'requestState', () => renderRequestState(state.requestState, submitBtn, spinnerEl));
+  watch(state, 'modalState', () => renderModalState(state.modalState));
 };

@@ -9,7 +9,7 @@ const generateMarkupForNewsItem = (item) => {
   </li>`;
 };
 
-const presentNews = (items, wrapper) => {
+const renderNews = (items, wrapper) => {
   const groupedItems = _.groupBy(items, item => item.channelId);
   const wrapperMarkup = Object.keys(groupedItems).map((channelId) => {
     const itemsMarkup = groupedItems[channelId].map(generateMarkupForNewsItem);
@@ -21,7 +21,7 @@ const presentNews = (items, wrapper) => {
   wrapper.innerHTML = wrapperMarkup.join('');
 };
 
-const presentChannels = (channels, wrapper, inputField) => {
+const renderChannels = (channels, wrapper, inputField) => {
   const channelsMarkup = channels.map(({ id, domain }) => `<a class="nav-link bg-light text-dark mb-1" id="v-pills-${id}-tab" data-toggle="pill" href="#v-pills-${id}" role="tab"
       aria-controls="v-pills-${id}" aria-selected="false">${domain}</a>`);
 
@@ -30,11 +30,11 @@ const presentChannels = (channels, wrapper, inputField) => {
   inputField.classList.remove('is-valid');
 };
 
-const presentForm = (urlState, inputField, submitBtn) => {
+const renderForm = (urlState, inputField, submitBtn) => {
   inputField.removeAttribute('class');
   inputField.classList.add('form-control');
 
-  const statePresentersDispatcher = {
+  const stateRenderersDispatcher = {
     valid: () => {
       inputField.classList.add('is-valid');
       submitBtn.disabled = false;
@@ -47,11 +47,11 @@ const presentForm = (urlState, inputField, submitBtn) => {
     },
   };
 
-  statePresentersDispatcher[urlState]();
+  stateRenderersDispatcher[urlState]();
 };
 
-const presentRequestState = (requestState, submitBtn, spinner) => {
-  const statePresentersDispatcher = {
+const renderRequestState = (requestState, submitBtn, spinner) => {
+  const stateRenderersDispatcher = {
     isProcessing: () => {
       spinner.classList.remove('d-none');
       submitBtn.disabled = true;
@@ -78,18 +78,18 @@ const presentRequestState = (requestState, submitBtn, spinner) => {
     },
   };
 
-  statePresentersDispatcher[requestState]();
+  stateRenderersDispatcher[requestState]();
 };
 
-const presentModalState = ({ title, description }) => {
+const renderModalState = ({ title, description }) => {
   document.querySelector('.modal-title').textContent = title;
   document.querySelector('.modal-body p').innerHTML = description;
 };
 
 export {
-  presentChannels,
-  presentNews,
-  presentForm,
-  presentRequestState,
-  presentModalState,
+  renderChannels,
+  renderNews,
+  renderForm,
+  renderRequestState,
+  renderModalState,
 };
