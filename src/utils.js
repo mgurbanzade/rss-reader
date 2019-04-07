@@ -1,10 +1,15 @@
+const parseRSSFeed = (xmlData) => {
+  const parser = new DOMParser();
+  return parser.parseFromString(xmlData, 'application/xml');
+};
+
 const getChannelDomain = (channelURL) => {
   const url = new URL(channelURL);
   return channelURL.includes('www') ? url.hostname.split('www.')[1] : url.hostname;
 };
 const getChannelId = channelURL => getChannelDomain(channelURL).split('.').join('');
 
-const generateChannelObject = ({data}) => {
+const generateChannelObject = ({ data }) => {
   const xmlDocument = parseRSSFeed(data);
   const link = xmlDocument.querySelector('link').textContent;
   return {
@@ -13,7 +18,7 @@ const generateChannelObject = ({data}) => {
   };
 };
 
-const generateNewsObject = ({data}) => {
+const generateNewsObject = ({ data }) => {
   const xmlDocument = parseRSSFeed(data);
   const channelLink = xmlDocument.querySelector('link').textContent;
   const childAttributes = ['title', 'link', 'description', 'pubDate'];
@@ -27,11 +32,6 @@ const generateNewsObject = ({data}) => {
       pubDate: child.filter(c => c.nodeName === 'pubDate')[0].textContent,
       channelId: getChannelId(channelLink),
     }));
-};
-
-const parseRSSFeed = (xmlData) => {
-  const parser = new DOMParser();
-  return parser.parseFromString(xmlData, 'application/xml');
 };
 
 const getHotNewsItems = responses => responses

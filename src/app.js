@@ -5,9 +5,7 @@ import $ from 'jquery';
 import axios from 'axios';
 import validator from 'validator';
 import { watch } from 'melanke-watchjs';
-import {
-  generateChannelObject, generateNewsObject, parseRSSFeed, getHotNewsItems,
-} from './utils';
+import { generateChannelObject, generateNewsObject, getHotNewsItems } from './utils';
 import {
   renderChannels, renderNews, renderForm, renderRequestState, renderModalState,
 } from './renderers';
@@ -72,15 +70,15 @@ export default () => {
 
       Promise.all(promises).then((responses) => {
         const parsedResponses = getHotNewsItems(responses);
-        const latestItems = parsedResponses.reduce((acc, itemsArray) => {
+        const latestItems = parsedResponses.map((newsItems) => {
           const sortByDate = (a, b) => (a.pubDate > b.pubDate ? -1 : a.pubDate < b.pubDate ? 1 : 0);
           const currLatestUpdateTime = state.news
-            .filter(parsedItem => parsedItem.channelId === itemsArray[0].channelId)
+            .filter(newsItem => newsItem.channelId === newsItems[0].channelId)
             .sort(sortByDate)[0].pubDate;
-          return [...acc, itemsArray.filter(item => item.pubDate > currLatestUpdateTime)];
-        }, []);
+          return newsItems.filter(item => item.pubDate > currLatestUpdateTime);
+        }).flat();
 
-        state.news = latestItems.flat().concat(state.news);
+        state.news = latestItems.concat(state.news);
       }).finally(lookForUpdates);
     }, interval);
   };
