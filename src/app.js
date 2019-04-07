@@ -5,22 +5,19 @@ import $ from 'jquery';
 import axios from 'axios';
 import validator from 'validator';
 import { watch } from 'melanke-watchjs';
+import { generateChannelObject, generateNewsObject, getHotNewsItems } from './utils';
 import {
-  generateChannelObject, generateNewsObject, parseRSSFeed, getHotNewsItems,
-} from './utils';
-import {
-  presentChannels,
-  presentNews,
-  presentForm,
-  presentRequestState,
-  presentModalState,
-} from './presenters';
+  renderChannels, renderNews, renderForm, renderRequestState, renderModalState,
+} from './renderers';
+
+const CORSproxy = 'https://cors-anywhere.herokuapp.com';
+const defaultUpdateTimeMs = 5000;
 
 export default () => {
   const state = {
-    parsedChannels: [],
-    parsedNews: [],
-    addedFeedLinks: [],
+    channels: [],
+    news: [],
+    feedLinks: [],
     urlState: null,
     requestState: null,
     modalState: {
@@ -35,8 +32,6 @@ export default () => {
   const submitBtn = document.querySelector('#submitBtn');
   const inputField = document.querySelector('#inputField');
   const modalWindow = $(document).find('#modalWindow');
-  const CORSproxy = 'https://cors-anywhere.herokuapp.com';
-  const defaultUpdateTimeMs = 5000;
 
   submitBtn.addEventListener('click', () => {
     const inputValue = inputField.value;
@@ -45,12 +40,11 @@ export default () => {
 
     state.requestState = 'isProcessing';
     axios.get(requestLink).then((response) => {
-      const xmlDocument = parseRSSFeed(response.data);
-      state.parsedChannels = [
-        ...state.parsedChannels, generateChannelObject(xmlDocument),
+      state.channels = [
+        ...state.channels, generateChannelObject(response),
       ];
-      state.parsedNews = state.parsedNews.concat(generateNewsObject(xmlDocument));
-      state.addedFeedLinks = [...state.addedFeedLinks, inputValue];
+      state.news = state.news.concat(generateNewsObject(response));
+      state.feedLinks = [...state.feedLinks, inputValue];
       state.requestState = 'succeed';
     }).catch(() => {
       state.requestState = 'failed';
@@ -59,7 +53,7 @@ export default () => {
 
   inputField.addEventListener('input', (e) => {
     const isValidURL = validator.isURL(e.target.value);
-    const isNotDuplicateURL = !state.addedFeedLinks.includes(e.target.value);
+    const isNotDuplicateURL = !state.feedLinks.includes(e.target.value);
     state.urlState = isValidURL && isNotDuplicateURL ? 'valid' : 'invalid';
   });
 
@@ -72,28 +66,28 @@ export default () => {
 
   const lookForUpdates = (interval = defaultUpdateTimeMs) => {
     setTimeout(() => {
-      const promises = state.addedFeedLinks.map(link => axios.get(`${CORSproxy}/${link}`));
+      const promises = state.feedLinks.map(link => axios.get(`${CORSproxy}/${link}`));
 
       Promise.all(promises).then((responses) => {
         const parsedResponses = getHotNewsItems(responses);
-        const latestItems = parsedResponses.reduce((acc, itemsArray) => {
+        const latestItems = parsedResponses.map((newsItems) => {
           const sortByDate = (a, b) => (a.pubDate > b.pubDate ? -1 : a.pubDate < b.pubDate ? 1 : 0);
-          const currLatestUpdateTime = state.parsedNews
-            .filter(parsedItem => parsedItem.channelId === itemsArray[0].channelId)
+          const currLatestUpdateTime = state.news
+            .filter(newsItem => newsItem.channelId === newsItems[0].channelId)
             .sort(sortByDate)[0].pubDate;
-          return [...acc, itemsArray.filter(item => item.pubDate > currLatestUpdateTime)];
-        }, []);
+          return newsItems.filter(item => item.pubDate > currLatestUpdateTime);
+        }).flat();
 
-        state.parsedNews = latestItems.flat().concat(state.parsedNews);
+        state.news = latestItems.concat(state.news);
       }).finally(lookForUpdates);
     }, interval);
   };
 
   lookForUpdates();
 
-  watch(state, 'parsedChannels', () => presentChannels(state.parsedChannels, tabsContainer, inputField));
-  watch(state, 'parsedNews', () => presentNews(state.parsedNews, tabItemsContainer));
-  watch(state, 'urlState', () => presentForm(state.urlState, inputField, submitBtn));
-  watch(state, 'requestState', () => presentRequestState(state.requestState, submitBtn, spinnerEl));
-  watch(state, 'modalState', () => presentModalState(state.modalState));
+  watch(state, 'channels', () => renderChannels(state.channels, tabsContainer, inputField));
+  watch(state, 'news', () => renderNews(state.news, tabItemsContainer));
+  watch(state, 'urlState', () => renderForm(state.urlState, inputField, submitBtn));
+  watch(state, 'requestState', () => renderRequestState(state.requestState, submitBtn, spinnerEl));
+  watch(state, 'modalState', () => renderModalState(state.modalState));
 };
