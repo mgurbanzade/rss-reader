@@ -87,9 +87,5 @@ const renderModalState = ({ title, description }) => {
 };
 
 export {
-  renderChannels,
-  renderNews,
-  renderForm,
-  renderRequestState,
-  renderModalState,
+  renderChannels, renderNews, renderForm, renderRequestState, renderModalState,
 };

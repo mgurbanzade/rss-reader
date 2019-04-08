@@ -5,7 +5,7 @@ import $ from 'jquery';
 import axios from 'axios';
 import validator from 'validator';
 import { watch } from 'melanke-watchjs';
-import { generateChannelObject, generateNewsObject, getHotNewsItems } from './utils';
+import parseRSSFeed from './rssParser';
 import {
   renderChannels, renderNews, renderForm, renderRequestState, renderModalState,
 } from './renderers';
@@ -40,10 +40,11 @@ export default () => {
 
     state.requestState = 'isProcessing';
     axios.get(requestLink).then((response) => {
+      const parsedData = parseRSSFeed(response.data);
       state.channels = [
-        ...state.channels, generateChannelObject(response),
+        ...state.channels, parsedData.channel,
       ];
-      state.news = state.news.concat(generateNewsObject(response));
+      state.news = state.news.concat(parsedData.news);
       state.feedLinks = [...state.feedLinks, inputValue];
       state.requestState = 'succeed';
     }).catch(() => {
@@ -69,9 +70,9 @@ export default () => {
       const promises = state.feedLinks.map(link => axios.get(`${CORSproxy}/${link}`));
 
       Promise.all(promises).then((responses) => {
-        const parsedResponses = getHotNewsItems(responses);
+        const parsedResponses = responses.map(({ data }) => parseRSSFeed(data).news);
         const latestItems = parsedResponses.map((newsItems) => {
-          const sortByDate = (a, b) => (a.pubDate > b.pubDate ? -1 : a.pubDate < b.pubDate ? 1 : 0);
+          const sortByDate = (a, b) => Math.sign(a.pubDate < b.pubDate);
           const currLatestUpdateTime = state.news
             .filter(newsItem => newsItem.channelId === newsItems[0].channelId)
             .sort(sortByDate)[0].pubDate;
