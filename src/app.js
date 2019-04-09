@@ -32,7 +32,7 @@ export default () => {
 
   const tabsContainer = document.querySelector('#v-pills-tab');
   const tabItemsContainer = document.querySelector('#v-pills-tabContent');
-  const spinnerEl = document.querySelector('#loadingSpinner');
+  const spinnerContainer = document.querySelector('#spinnerContainer');
   const submitBtn = document.querySelector('#submitBtn');
   const inputField = document.querySelector('#inputField');
   const modalWindow = $(document).find('#modalWindow');
@@ -100,6 +100,6 @@ export default () => {
   watch(state, 'channels', () => renderChannels(state.channels, tabsContainer, inputField));
   watch(state, 'news', () => renderNews(state.news, state.tabState, tabItemsContainer));
   watch(state, 'urlState', () => renderForm(state.urlState, inputField, submitBtn));
-  watch(state, 'requestState', () => renderRequestState(state.requestState, submitBtn, spinnerEl));
+  watch(state, 'requestState', () => renderRequestState(state.requestState, submitBtn, spinnerContainer));
   watch(state, 'modalState', () => renderModalState(state.modalState));
 };
