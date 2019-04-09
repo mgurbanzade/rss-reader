@@ -20,6 +20,10 @@ export default () => {
     feedLinks: [],
     urlState: null,
     requestState: null,
+    tabState: {
+      prevTab: null,
+      currTab: null,
+    },
     modalState: {
       title: null,
       description: null,
@@ -44,6 +48,8 @@ export default () => {
       state.channels = [
         ...state.channels, parsedData.channel,
       ];
+      state.tabState.prevTab = state.tabState.currTab;
+      state.tabState.currTab = parsedData.channel.id;
       state.news = state.news.concat(parsedData.news);
       state.feedLinks = [...state.feedLinks, inputValue];
       state.requestState = 'succeed';
@@ -84,10 +90,15 @@ export default () => {
     }, interval);
   };
 
+  $(document).on('click', '[data-toggle="pill"]', (e) => {
+    state.tabState.prevTab = state.tabState.currTab;
+    state.tabState.currTab = $(e.target).attr('href').split('#v-pills-')[1];
+  });
+
   lookForUpdates();
 
   watch(state, 'channels', () => renderChannels(state.channels, tabsContainer, inputField));
-  watch(state, 'news', () => renderNews(state.news, tabItemsContainer));
+  watch(state, 'news', () => renderNews(state.news, state.tabState, tabItemsContainer));
   watch(state, 'urlState', () => renderForm(state.urlState, inputField, submitBtn));
   watch(state, 'requestState', () => renderRequestState(state.requestState, submitBtn, spinnerEl));
   watch(state, 'modalState', () => renderModalState(state.modalState));

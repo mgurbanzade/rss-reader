@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import _ from 'lodash';
 
 const generateMarkupForNewsItem = (item) => {
@@ -9,21 +10,25 @@ const generateMarkupForNewsItem = (item) => {
   </li>`;
 };
 
-const renderNews = (items, wrapper) => {
+const renderNews = (items, tabState, wrapper) => {
   const groupedItems = _.groupBy(items, item => item.channelId);
   const wrapperMarkup = Object.keys(groupedItems).map((channelId) => {
     const itemsMarkup = groupedItems[channelId].map(generateMarkupForNewsItem);
-    return `<div class="tab-pane fade show active" id="v-pills-${channelId}" role="tabpanel" aria-labelledby="v-pills-${channelId}-tab">
+    return `<div class="tab-pane fade" id="v-pills-${channelId}" role="tabpanel">
       <ul class="list-group">${itemsMarkup.join('')}</ul>
     </div>`;
   });
 
   wrapper.innerHTML = wrapperMarkup.join('');
+  $(`#v-pills-${tabState.prevTab}`).removeClass('active');
+  $(`#v-pills-${tabState.prevTab}`).removeClass('show');
+  $(`#v-pills-${tabState.currTab}`).addClass('active');
+  $(`#v-pills-${tabState.currTab}`).addClass('show');
 };
 
 const renderChannels = (channels, wrapper, inputField) => {
   const channelsMarkup = channels.map(({ id, domain }) => `<a class="nav-link bg-light text-dark mb-1" id="v-pills-${id}-tab" data-toggle="pill" href="#v-pills-${id}" role="tab"
-      aria-controls="v-pills-${id}" aria-selected="false">${domain}</a>`);
+      aria-selected="false">${domain}</a>`);
 
   wrapper.innerHTML = channelsMarkup.join('');
   inputField.value = '';
