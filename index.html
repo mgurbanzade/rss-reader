@@ -13,17 +13,20 @@
     <div class="container">
       <h1 class="page-heading mb-4">RSS Reader</h1>
       <div class="row no-gutters">
-        <div class="input-group mb-3">
-          <input id="inputField" class="form-control" type="text" placeholder="Enter RSS feed URL..." aria-describedby="submitBtn">
-          <div class="input-group-append col-3 col-md-2 pl-0 pr-0">
-            <button id="submitBtn" class="btn btn-success btn-block" type="submit">Read</button>
+        <form action="" id="searchForm" class="input-group">
+          <div class="input-group mb-3">
+            <input id="inputField" class="form-control" type="text" placeholder="Enter RSS feed URL..."
+              aria-describedby="submitBtn">
+            <div class="input-group-append col-3 col-md-2 pl-0 pr-0">
+              <button id="submitBtn" class="btn btn-success btn-block" type="submit">Read</button>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   </div>
   <div class="container">
-    <div id="spinnerContainer" class="text-center d-none">
+    <div id="spinnerContainer" class="spinner-container text-center d-none">
       <div class="spinner-grow text-primary" role="status">
         <span class="sr-only">Loading...</span>
       </div>

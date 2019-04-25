@@ -1,6 +1,9 @@
+import './styles.scss';
 import '../favicon.ico';
-import 'bootstrap';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/js/dist/alert';
+import 'bootstrap/js/dist/button';
+import 'bootstrap/js/dist/modal';
+import 'bootstrap/js/dist/tab';
 import $ from 'jquery';
 import axios from 'axios';
 import validator from 'validator';
@@ -34,10 +37,11 @@ export default () => {
   const tabItemsContainer = document.querySelector('#v-pills-tabContent');
   const spinnerContainer = document.querySelector('#spinnerContainer');
   const submitBtn = document.querySelector('#submitBtn');
+  const searchForm = document.querySelector('#searchForm');
   const inputField = document.querySelector('#inputField');
   const modalWindow = $(document).find('#modalWindow');
 
-  submitBtn.addEventListener('click', () => {
+  const initSearch = () => {
     const inputValue = inputField.value;
     const requestLink = `${CORSproxy}/${inputValue}`;
     if (inputValue.length === 0) return;
@@ -56,7 +60,12 @@ export default () => {
     }).catch(() => {
       state.requestState = 'failed';
     });
-  });
+  }
+
+  searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    initSearch();
+  })
 
   inputField.addEventListener('input', (e) => {
     const isValidURL = validator.isURL(e.target.value);
